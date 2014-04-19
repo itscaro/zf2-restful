@@ -1,0 +1,17 @@
+{
+    "name": "itscaro/zf2-restful",
+    "description": "Restful client for ZF2",
+    "license": "GPL v2",
+    "keywords": [
+        "framework",
+        "zf2"
+    ],
+    "homepage": "",
+    "require": {
+        "php": ">=5.3.3",
+        "zendframework/zendframework": "2.3.*"
+    },
+    "require-dev": {
+        
+    }
+}
