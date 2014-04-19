@@ -1,11 +1,11 @@
 <?php
 
-namespace Itscaro\Service;
+namespace Itscaro\Service\Flickr;
 
 use ZendOAuth;
 use Itscaro\Rest;
 
-class Flickr {
+class Client {
 
     /**
      *
