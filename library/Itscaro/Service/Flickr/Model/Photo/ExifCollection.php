@@ -2,6 +2,8 @@
 
 namespace Itscaro\Service\Flickr\Model\Photo;
 
+use Itscaro\Service\Flickr\Model\ModelAbstract;
+
 /**
  * Description of Photo
  *
@@ -44,6 +46,13 @@ class ExifCollection extends ModelAbstract {
      * @var Exif[] 
      */
     public $exif = array();
+
+    public function __construct(array $rawData = array())
+    {
+        parent::__construct($rawData);
+
+        $this->exif = null;
+    }
 
     public function addItems(array $items)
     {

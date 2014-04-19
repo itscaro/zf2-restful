@@ -2,6 +2,8 @@
 
 namespace Itscaro\Service\Flickr\Model\Photo;
 
+use Itscaro\Service\Flickr\Model\ModelAbstract;
+
 /**
  * Description of Photo
  *
@@ -32,6 +34,13 @@ class SizeCollection extends ModelAbstract {
      * @var Size[] 
      */
     public $size;
+
+    public function __construct(array $rawData = array())
+    {
+        parent::__construct($rawData);
+
+        $this->size = null;
+    }
 
     public function addItems(array $items)
     {
