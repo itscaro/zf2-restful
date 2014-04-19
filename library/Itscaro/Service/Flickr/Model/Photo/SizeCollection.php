@@ -29,7 +29,7 @@ class SizeCollection extends ModelAbstract {
 
     /**
      *
-     * @var array 
+     * @var Size[] 
      */
     public $size;
 

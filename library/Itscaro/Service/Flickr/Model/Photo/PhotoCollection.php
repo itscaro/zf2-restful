@@ -35,7 +35,7 @@ class PhotoCollection extends ModelAbstract {
 
     /**
      *
-     * @var array 
+     * @var Photo[] 
      */
     public $photo = array();
 

@@ -41,7 +41,7 @@ class ExifCollection extends ModelAbstract {
 
     /**
      *
-     * @var array 
+     * @var Exif[] 
      */
     public $exif = array();
 
