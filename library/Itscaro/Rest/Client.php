@@ -4,6 +4,7 @@ namespace Itscaro\Rest;
 
 use Zend\Http\Client as HttpClient;
 use Zend\Http\Request;
+use Zend\Http\Response;
 use Zend\Stdlib\Parameters;
 
 class Client {
@@ -23,38 +24,36 @@ class Client {
 
     /**
      *
-     * @var Zend\Http\Client
+     * @var HttpClient
      */
-    protected $_httpClient;
+    protected static $_httpClient;
 
     /**
      *
-     * @var type 
+     * @var string 
      */
     protected $_contentType = "application/json";
 
     /**
      * 
-     * @return Zend\Http\Client
+     * @return HttpClient
      */
-    public function getHttpClient()
+    public static function getHttpClient()
     {
-        if ($this->_httpClient == null) {
+        if (static::$_httpClient == null) {
             $httpClient = new HttpClient();
-            $this->setHttpClient($httpClient);
+            static::setHttpClient($httpClient);
         }
-        return $this->_httpClient;
+        return static::$_httpClient;
     }
 
     /**
      * 
-     * @param Zend\Http\Client $httpClient
-     * @return Client
+     * @param HttpClient $httpClient
      */
-    public function setHttpClient($httpClient)
+    public static function setHttpClient(Zend\Http\Client $httpClient)
     {
-        $this->_httpClient = $httpClient;
-        return $this;
+        static::$_httpClient = $httpClient;
     }
 
     /**
@@ -69,9 +68,9 @@ class Client {
     /**
      * 
      * @param string $contentType
-     * @return Client
+     * @return \Itscaro\Rest\Client
      */
-    public function setContentType(type $contentType)
+    public function setContentType($contentType)
     {
         $this->_contentType = $contentType;
         return $this;
@@ -112,7 +111,14 @@ class Client {
         return $this->execute($url, self::HTTP_VERB_HEAD);
     }
 
-    protected function execute($url, $method, $data = null)
+    /**
+     * 
+     * @param string $url
+     * @param string $method
+     * @param array $data
+     * @return object | array
+     */
+    protected function execute($url, $method, array $data = array())
     {
         $request = new Request();
         $request->getHeaders()->addHeaders(array(
@@ -143,7 +149,7 @@ class Client {
 
     /**
      * 
-     * @param \Itscaro\Rest\Response $response
+     * @param Response $response
      */
     protected function processStatus(Response $response)
     {
@@ -152,8 +158,8 @@ class Client {
 
     /**
      * 
-     * @param \Itscaro\Rest\Response $response
-     * @return type
+     * @param Response $response
+     * @return object | array
      */
     protected function _processResponse(Response $response)
     {

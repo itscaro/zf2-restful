@@ -40,6 +40,27 @@ class Client {
 
     /**
      * 
+     * @return \Zend\Http\Client
+     */
+    public function getHttpClient()
+    {
+        return Rest\Client::getHttpClient();
+    }
+
+    /**
+     * 
+     * @param \Zend\Http\Client $httpClient
+     * @return \Itscaro\Service\Flickr\Client
+     */
+    public function setHttpClient(\Zend\Http\Client $httpClient)
+    {
+        Rest\Client::setHttpClient($_httpClient);
+
+        return $this;
+    }
+
+    /**
+     * 
      * @return string
      */
     public function getEndpoint()
@@ -50,7 +71,7 @@ class Client {
     /**
      * 
      * @param string $endpoint
-     * @return \Itscaro\Service\Flickr
+     * @return \Itscaro\Service\Flickr\Client
      */
     public function setEndpoint($endpoint)
     {
@@ -70,7 +91,7 @@ class Client {
     /**
      * 
      * @param ZendOAuth\Token\Access $accessToken
-     * @return \Itscaro\Service\Flickr
+     * @return \Itscaro\Service\Flickr\Client
      */
     public function setAccessToken(ZendOAuth\Token\Access $accessToken)
     {
@@ -95,6 +116,8 @@ class Client {
         if ($this->_accessToken instanceof ZendOAuth\Token\Access) {
             $params['oauth_token'] = $this->_accessToken->getParam('oauth_token');
         }
+        
+        return $params;
     }
 
     /**
