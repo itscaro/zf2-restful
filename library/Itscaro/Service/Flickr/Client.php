@@ -25,10 +25,57 @@ class Flickr {
      */
     protected $_accessToken;
 
-    function __construct(array $options)
+    /**
+     *
+     * @var string
+     */
+    protected $_endpoint;
+
+    function __construct($endpoint, array $options)
     {
+        $this->setEndpoint($endpoint);
         $this->_httpUtility = new ZendOAuth\Http\Utility();
         $this->_oauthConfig = new ZendOAuth\Config\StandardConfig($options);
+    }
+
+    /**
+     * 
+     * @return string
+     */
+    public function getEndpoint()
+    {
+        return $this->_endpoint;
+    }
+
+    /**
+     * 
+     * @param string $endpoint
+     * @return \Itscaro\Service\Flickr
+     */
+    public function setEndpoint($endpoint)
+    {
+        $this->_endpoint = $endpoint;
+        return $this;
+    }
+
+    /**
+     * 
+     * @return ZendOAuth\Token\Access
+     */
+    public function getAccessToken()
+    {
+        return $this->_accessToken;
+    }
+
+    /**
+     * 
+     * @param ZendOAuth\Token\Access $accessToken
+     * @return \Itscaro\Service\Flickr
+     */
+    public function setAccessToken(ZendOAuth\Token\Access $accessToken)
+    {
+        $this->_accessToken = $accessToken;
+        return $this;
     }
 
     /**
@@ -58,7 +105,7 @@ class Flickr {
     public function dispatch($method, array $params = array())
     {
         $params['method'] = $method;
-        
+
         $finalParams = array_merge($params, $this->generateOAuthParams());
         $url = $this->getEndpoint() . '/?' . http_build_query($finalParams);
 
