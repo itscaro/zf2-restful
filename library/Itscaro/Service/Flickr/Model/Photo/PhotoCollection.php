@@ -29,7 +29,7 @@ class PhotoCollection extends ModelAbstract {
 
     /**
      *
-     * @var int 
+     * @var string 
      */
     public $total;
 

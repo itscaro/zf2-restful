@@ -7,7 +7,7 @@ namespace Itscaro\Service\Flickr\Model\Photo;
  *
  * @author Minh-Quan
  */
-class ExifCollection extends ModelAbstract {
+class Exif extends ModelAbstract {
 
     /**
      *

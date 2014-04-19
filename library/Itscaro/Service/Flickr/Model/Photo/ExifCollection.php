@@ -29,7 +29,7 @@ class ExifCollection extends ModelAbstract {
 
     /**
      *
-     * @var string 
+     * @var int 
      */
     public $farm;
 
