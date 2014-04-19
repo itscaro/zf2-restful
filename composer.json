@@ -13,5 +13,10 @@
     },
     "require-dev": {
         
+    },
+    "autoload": {
+        "psr-0": {
+            "Itscaro\\": "library/"
+        }
     }
 }
