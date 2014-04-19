@@ -51,7 +51,7 @@ class Client {
      * 
      * @param HttpClient $httpClient
      */
-    public static function setHttpClient(Zend\Http\Client $httpClient)
+    public static function setHttpClient(HttpClient $httpClient)
     {
         static::$_httpClient = $httpClient;
     }
@@ -151,7 +151,7 @@ class Client {
      * 
      * @param Response $response
      */
-    protected function processStatus(Response $response)
+    protected function _processStatus(Response $response)
     {
         
     }

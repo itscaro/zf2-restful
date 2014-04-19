@@ -54,7 +54,7 @@ class Client {
      */
     public function setHttpClient(\Zend\Http\Client $httpClient)
     {
-        Rest\Client::setHttpClient($_httpClient);
+        Rest\Client::setHttpClient($httpClient);
 
         return $this;
     }
