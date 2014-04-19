@@ -49,7 +49,7 @@ class Client {
     /**
      * 
      * @param Zend\Http\Client $httpClient
-     * @return \Itscaro\Rest\Client
+     * @return Client
      */
     public function setHttpClient($httpClient)
     {
@@ -69,7 +69,7 @@ class Client {
     /**
      * 
      * @param string $contentType
-     * @return \Itscaro\Rest\Client
+     * @return Client
      */
     public function setContentType(type $contentType)
     {
