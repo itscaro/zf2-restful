@@ -7,13 +7,7 @@ namespace Itscaro\Service\Flickr\Model;
  *
  * @author Minh-Quan
  */
-class ModelAbstract {
-
-    /**
-     *
-     * @var array
-     */
-    protected $_rawData;
+abstract class ModelAbstract {
 
     public function __construct(array $rawData = array())
     {

@@ -116,7 +116,7 @@ class Client {
         if ($this->_accessToken instanceof ZendOAuth\Token\Access) {
             $params['oauth_token'] = $this->_accessToken->getParam('oauth_token');
         }
-        
+
         return $params;
     }
 
@@ -134,6 +134,46 @@ class Client {
 
         $client = new Rest\Client();
         return $client->get($url);
+    }
+
+    public function photoGetExif(array $params = array())
+    {
+        return $this->dispatch('flickr.photos.getExif', $params);
+    }
+
+    public function photoGetInfo(array $params = array())
+    {
+        return $this->dispatch('flickr.photos.getInfo', $params);
+    }
+
+    public function photoGetSizes(array $params = array())
+    {
+        return $this->dispatch('flickr.photos.getSizes', $params);
+    }
+
+    public function photoAddTags(array $params = array())
+    {
+        return $this->dispatch('flickr.photos.addTags', $params);
+    }
+
+    public function photoSetTags(array $params = array())
+    {
+        return $this->dispatch('flickr.photos.setTags', $params);
+    }
+
+    public function photoRemoveTag(array $params = array())
+    {
+        return $this->dispatch('flickr.photos.removeTag', $params);
+    }
+
+    public function photoSetMeta(array $params = array())
+    {
+        return $this->dispatch('flickr.photos.setMeta', $params);
+    }
+
+    public function photoSearch(array $params = array())
+    {
+        return $this->dispatch('flickr.photos.search', $params);
     }
 
 }
