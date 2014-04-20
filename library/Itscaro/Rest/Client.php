@@ -118,7 +118,7 @@ class Client {
      * @param array $data
      * @return object | array
      */
-    protected function execute($url, $method, array $data = array())
+    protected function execute($url, $method, array $data = array(), \Zend\Http\Headers $headers = null)
     {
         $request = new Request();
         $request->getHeaders()->addHeaders(array(
@@ -126,7 +126,10 @@ class Client {
         ));
         $request->setUri($url);
         $request->setMethod($method);
-
+        if ($headers) {
+            $request->setHeaders($headers);
+        }
+        
         switch ($method) {
             case self::HTTP_VERB_POST:
             case self::HTTP_VERB_PUT:
