@@ -138,7 +138,7 @@ class Client extends ClientAbstract {
         $finalParams = array_merge($params, $this->generateOAuthParams());
         $url = $this->getEndpoint() . '/?' . http_build_query($finalParams);
 
-        return $this->getRestClient()->get($url);
+        return json_decode($this->getRestClient()->get($url), true);
     }
 
     /**
@@ -153,7 +153,7 @@ class Client extends ClientAbstract {
 
         $finalParams = array_merge($params, $this->generateOAuthParams());
 
-        return $this->getRestClient()->post($this->getEndpoint(), $finalParams);
+        return json_decode($this->getRestClient()->post($this->getEndpoint(), $finalParams), true);
     }
 
 }
