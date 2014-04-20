@@ -5,7 +5,7 @@ namespace Itscaro\Service\Flickr;
 use ZendOAuth;
 use Itscaro\Rest;
 
-class Client {
+class Client extends ClientAbstract {
 
     /**
      *
@@ -25,17 +25,13 @@ class Client {
      */
     protected $_accessToken;
 
-    /**
-     *
-     * @var string
-     */
-    protected $_endpoint;
-
-    function __construct($endpoint, array $options)
+    public function __construct($endpoint, array $options)
     {
-        $this->setEndpoint($endpoint);
+        parent::__construct($endpoint);
         $this->_httpUtility = new ZendOAuth\Http\Utility();
         $this->_oauthConfig = new ZendOAuth\Config\StandardConfig($options);
+
+        $this->getRestClient()->setContentType("text/plain");
     }
 
     /**
@@ -56,26 +52,6 @@ class Client {
     {
         Rest\Client::setHttpClient($httpClient);
 
-        return $this;
-    }
-
-    /**
-     * 
-     * @return string
-     */
-    public function getEndpoint()
-    {
-        return $this->_endpoint;
-    }
-
-    /**
-     * 
-     * @param string $endpoint
-     * @return \Itscaro\Service\Flickr\Client
-     */
-    public function setEndpoint($endpoint)
-    {
-        $this->_endpoint = $endpoint;
         return $this;
     }
 
@@ -122,58 +98,62 @@ class Client {
 
     /**
      * 
+     * @param string $httpMethod
+     * @param string $method
+     * @param array $params
+     * @return object | array
+     * @throws Exception
+     */
+    protected function dispatch($httpMethod, $method, array $params = array())
+    {
+        switch (strtoupper($httpMethod)) {
+            case "GET":
+                $result = $this->get($method, $params);
+                break;
+            case "POST":
+                $result = $this->post($method, $params);
+                break;
+        }
+
+        if (isset($result['stat']) && $result['stat'] != 'ok') {
+            $e = new Exception($result['message'], $result['code']);
+            $e->setStat($result['stat']);
+
+            throw $e;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Call using HTTP GET
+     * @param string $method
      * @param array $params
      * @return object | array
      */
-    public function dispatch($method, array $params = array())
+    public function get($method, array $params = array())
     {
         $params['method'] = $method;
 
         $finalParams = array_merge($params, $this->generateOAuthParams());
         $url = $this->getEndpoint() . '/?' . http_build_query($finalParams);
 
-        $client = new Rest\Client();
-        return $client->get($url);
+        return $this->getRestClient()->get($url);
     }
 
-    public function photoGetExif(array $params = array())
+    /**
+     * Call using HTTP POST
+     * @param string $method
+     * @param array $params
+     * @return object | array
+     */
+    public function post($method, array $params = array())
     {
-        return $this->dispatch('flickr.photos.getExif', $params);
-    }
+        $params['method'] = $method;
 
-    public function photoGetInfo(array $params = array())
-    {
-        return $this->dispatch('flickr.photos.getInfo', $params);
-    }
+        $finalParams = array_merge($params, $this->generateOAuthParams());
 
-    public function photoGetSizes(array $params = array())
-    {
-        return $this->dispatch('flickr.photos.getSizes', $params);
-    }
-
-    public function photoAddTags(array $params = array())
-    {
-        return $this->dispatch('flickr.photos.addTags', $params);
-    }
-
-    public function photoSetTags(array $params = array())
-    {
-        return $this->dispatch('flickr.photos.setTags', $params);
-    }
-
-    public function photoRemoveTag(array $params = array())
-    {
-        return $this->dispatch('flickr.photos.removeTag', $params);
-    }
-
-    public function photoSetMeta(array $params = array())
-    {
-        return $this->dispatch('flickr.photos.setMeta', $params);
-    }
-
-    public function photoSearch(array $params = array())
-    {
-        return $this->dispatch('flickr.photos.search', $params);
+        return $this->getRestClient()->post($this->getEndpoint(), $finalParams);
     }
 
 }
