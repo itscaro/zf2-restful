@@ -106,6 +106,12 @@ class Client extends ClientAbstract {
      */
     protected function dispatch($httpMethod, $method, array $params = array())
     {
+        $defaultParams = array(
+            'nojsoncallback' => 1,
+            'format' => 'json',
+        );
+        $params = array_merge($defaultParams, $params);
+
         switch (strtoupper($httpMethod)) {
             case "GET":
                 $result = $this->get($method, $params);
