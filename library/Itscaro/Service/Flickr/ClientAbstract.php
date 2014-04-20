@@ -35,7 +35,7 @@ abstract class ClientAbstract {
     /**
      * 
      * @param \Zend\Http\Client $httpClient
-     * @return \Itscaro\Service\Flickr\Client
+     * @return Flickr\Client
      */
     public function setHttpClient(\Zend\Http\Client $httpClient)
     {
@@ -114,7 +114,7 @@ abstract class ClientAbstract {
 
         $result = $this->dispatch('GET', 'flickr.photos.getExif', $extraParams);
 
-        $exifs = new Flickr\Model\Photo\ExifCollection($result['photo']);
+        $exifs = new Model\Photo\ExifCollection($result['photo']);
         if (isset($result['photo']['exif']) && is_array($result['photo']['exif'])) {
             $exifs->addItems($result['photo']['exif']);
         }
@@ -139,7 +139,7 @@ abstract class ClientAbstract {
 
         $result = $this->dispatch('GET', 'flickr.photos.getInfo', $extraParams);
 
-        return new Flickr\Model\Photo\PhotoInfo($result['photo']);
+        return new Model\Photo\PhotoInfo($result['photo']);
     }
 
     /**
@@ -155,7 +155,7 @@ abstract class ClientAbstract {
 
         $result = $this->dispatch('GET', 'flickr.photos.getSizes', $extraParams);
 
-        $sizes = new Flickr\Model\Photo\SizeCollection($result['sizes']);
+        $sizes = new Model\Photo\SizeCollection($result['sizes']);
         if (isset($result['sizes']['size']) && is_array($result['sizes']['size'])) {
             $sizes->addItems($result['sizes']['size']);
         }
@@ -240,7 +240,7 @@ abstract class ClientAbstract {
     {
         $result = $this->dispatch('GET', 'flickr.photos.search', $extraParams);
 
-        $photos = new Flickr\Model\Photo\PhotoCollection($result['photos']);
+        $photos = new Model\Photo\PhotoCollection($result['photos']);
         if (isset($result['photos']['photo']) && is_array($result['photos']['photo'])) {
             $photos->addItems($result['photos']['photo']);
         }
