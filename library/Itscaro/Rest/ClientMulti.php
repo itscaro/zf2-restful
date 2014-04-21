@@ -39,7 +39,7 @@ class ClientMulti extends RestClient {
             $request->setQuery(new Parameters($query));
         }
 
-        $request->setUri($url . '/?' . $request->getQuery()->toString())
+        $request->setUri($url)
                 ->setMethod($method);
 
         switch ($method) {
@@ -60,7 +60,7 @@ class ClientMulti extends RestClient {
         $ch = $adapter->getHandle();
 
         // Set URL
-        curl_setopt($ch, CURLOPT_URL, $request->getUriString());
+        curl_setopt($ch, CURLOPT_URL, $request->getUriString() . '?' . $request->getQuery()->toString());
 
         // ensure correct curl call
         $curlValue = true;

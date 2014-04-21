@@ -84,6 +84,7 @@ class ClientMulti extends ClientAbstract {
     public function setAccessToken(ZendOAuth\Token\Access $accessToken)
     {
         $this->_accessToken = $accessToken;
+        $this->_oauthConfig->setToken($accessToken);
         return $this;
     }
 
@@ -91,14 +92,25 @@ class ClientMulti extends ClientAbstract {
      * 
      * @return array
      */
-    protected function generateOAuthParams()
+    protected function generateOAuthParams(array $params = array())
     {
+        $params = $this->_httpUtility->assembleParams($this->getEndpoint(), $this->_oauthConfig, $params);
+        return $params;
+        
         $params = array(
             'oauth_consumer_key' => $this->_oauthConfig->getConsumerKey(),
             'oauth_nonce' => $this->_httpUtility->generateNonce(),
             'oauth_timestamp' => $this->_httpUtility->generateTimestamp(),
             'oauth_signature_method' => $this->_oauthConfig->getSignatureMethod(),
             'oauth_version' => $this->_oauthConfig->getVersion(),
+        );
+        $params['oauth_signature'] = $this->_httpUtility->sign(
+            $params,
+            $this->_oauthConfig->getSignatureMethod(),
+            $this->_oauthConfig->getConsumerSecret(),
+            $this->_consumer->getLastRequestToken()->getTokenSecret(),
+            $this->_preferredRequestMethod,
+            $this->_oauthConfig->getAccessTokenUrl()
         );
 
         if ($this->_accessToken instanceof ZendOAuth\Token\Access) {
@@ -119,19 +131,22 @@ class ClientMulti extends ClientAbstract {
     public function addToQueue($httpMethod, $method, array $params = null)
     {
         $defaultParams = array(
+            //'api_key' => $this->_oauthConfig->getConsumerKey(),
             'nojsoncallback' => 1,
             'format' => 'json',
             'method' => $method,
         );
-        $finalParams = array_merge($defaultParams, $this->generateOAuthParams(), $params);
+        $finalParams = array_merge($defaultParams, $params);
 
+        $finalParams = $this->generateOAuthParams($finalParams);
+        //var_dump($this->getEndpoint(), $finalParams);exit;
         switch (strtoupper($httpMethod)) {
             case "GET":
                 $result = $this->getRestClient()->get($this->getEndpoint(), $finalParams);
                 break;
 
             case "POST":
-                $result = $this->getRestClient()->post($this->getEndpoint(), null, $finalParams);
+                $result = $this->getRestClient()->post($this->getEndpoint(), $finalParams);
                 break;
         }
 
