@@ -36,13 +36,5 @@ abstract class ClientAbstract {
         $this->_endpoint = $endpoint;
         return $this;
     }
-
-    /**
-     * 
-     * @param array $params
-     * @return object | array
-     * @throws Exception
-     */
-    abstract protected function dispatch($httpMethod, $method, array $params = array());
-
+    
 }

@@ -2,12 +2,16 @@
 
 namespace Itscaro\Rest;
 
+use Exception;
+use Itscaro\Rest\Client as RestClient;
 use Zend\Http\Client as HttpClient;
+use Zend\Http\Client\Adapter\Curl;
+use Zend\Http\Headers;
 use Zend\Http\Request;
 use Zend\Http\Response;
 use Zend\Stdlib\Parameters;
 
-class ClientMulti extends Client {
+class ClientMulti extends RestClient {
 
     protected $_handlers = array();
     protected $_responses = array();
@@ -18,34 +22,39 @@ class ClientMulti extends Client {
         $this->_httpClientOptions = $httpClientOptions;
     }
 
-    protected function execute($url, $method, array $data = array(), \Zend\Http\Headers $headers = null)
+    protected function execute($url, $method, array $query = null, array $rawdata = null, Headers $headers = null)
     {
         $request = new Request();
+
+        // Headers
         $request->getHeaders()->addHeaders(array(
             'Content-Type' => $this->getContentType()
         ));
-        $request->setUri($url);
-        $request->setMethod($method);
         if ($headers) {
-            $request->setHeaders($headers);
+            $request->getHeaders()->addHeaders($headers);
         }
+
+        // Query
+        if ($query) {
+            $request->setQuery(new Parameters($query));
+        }
+
+        $request->setUri($url . '/?' . $request->getQuery()->toString())
+                ->setMethod($method);
 
         switch ($method) {
             case self::HTTP_VERB_POST:
             case self::HTTP_VERB_PUT:
             case self::HTTP_VERB_PATCH:
-                if ($data) {
-                    $request->setPost(new Parameters($data));
+                if ($rawdata) {
+                    $request->setPost(new Parameters($rawdata));
                 }
-                break;
-
-            default:
                 break;
         }
 
         $client = new HttpClient('', $this->_httpClientOptions);
         $adapter = $client->getAdapter();
-        /* @var $adapter \Zend\Http\Client\Adapter\Curl */
+        /* @var $adapter Curl */
         $secure = $request->getUri()->getScheme() == 'https';
         $adapter->connect($request->getUri()->getHost(), $request->getUri()->getPort(), $secure);
         $ch = $adapter->getHandle();
@@ -65,38 +74,18 @@ class ClientMulti extends Client {
                 break;
 
             case 'PUT' :
-                $curlMethod = CURLOPT_CUSTOMREQUEST;
-                $curlValue = "PUT";
-                break;
-
             case 'PATCH' :
-                $curlMethod = CURLOPT_CUSTOMREQUEST;
-                $curlValue = "PATCH";
-                break;
-
             case 'DELETE' :
-                $curlMethod = CURLOPT_CUSTOMREQUEST;
-                $curlValue = "DELETE";
-                break;
-
             case 'OPTIONS' :
-                $curlMethod = CURLOPT_CUSTOMREQUEST;
-                $curlValue = "OPTIONS";
-                break;
-
             case 'TRACE' :
-                $curlMethod = CURLOPT_CUSTOMREQUEST;
-                $curlValue = "TRACE";
-                break;
-
             case 'HEAD' :
                 $curlMethod = CURLOPT_CUSTOMREQUEST;
-                $curlValue = "HEAD";
+                $curlValue = $method;
                 break;
 
             default:
                 // For now, through an exception for unsupported request methods
-                throw new \Exception("Method '$method' currently not supported");
+                throw new Exception("Method '$method' currently not supported");
         }
 
         // mark as HTTP request and set HTTP method
@@ -104,13 +93,13 @@ class ClientMulti extends Client {
         curl_setopt($ch, $curlMethod, $curlValue);
 
         // ensure headers are also returned
-        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_HEADER, false);
 
         // ensure actual response is returned
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         // Treating basic auth headers in a special way
-        if ($request->getHeaders() instanceof \Zend\Http\Headers) {
+        if ($request->getHeaders() instanceof Headers) {
             $headersArray = $request->getHeaders()->toArray();
             if (array_key_exists('Authorization', $headersArray) && 'Basic' == substr($headersArray['Authorization'], 0, 5)) {
                 curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
@@ -131,19 +120,21 @@ class ClientMulti extends Client {
         }
 
         // POST body
-        if ($method == 'POST') {
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $request->getPost()->toArray());
-        } elseif ($method == 'PUT') {
-            // This is a PUT by a setRawData string, not by file-handle
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $request->getPost()->toArray());
-        } elseif ($method == 'PATCH') {
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $request->getPost()->toArray());
+        switch ($method) {
+            case 'POST':
+            case 'PUT':
+            case 'PATCH':
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $request->getPost()->toArray());
+                break;
         }
 
         $this->_handlers[] = $ch;
+        
+        end($this->_handlers);
+        return key($this->_handlers);
     }
 
-    protected function dispatch()
+    public function dispatch()
     {
         //create the multiple cURL handle
         $mh = curl_multi_init();
@@ -166,6 +157,7 @@ class ClientMulti extends Client {
                 } while ($mrc == CURLM_CALL_MULTI_PERFORM);
             }
         }
+        var_dump("INFO", curl_multi_info_read($mh));
 
         //close the handles
         foreach ($this->_handlers as $key => $ch) {
@@ -173,10 +165,10 @@ class ClientMulti extends Client {
             curl_multi_remove_handle($mh, $ch);
             curl_close($ch);
         }
-
         curl_multi_close($mh);
 
         $this->_handlers = null;
+        var_dump("RESPONSE", $this->_responses);
 
         return $this->_reponses;
     }

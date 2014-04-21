@@ -76,66 +76,69 @@ class Client {
         return $this;
     }
 
-    public function get($url)
+    public function get($url, array $query = null)
     {
-        return $this->execute($url, self::HTTP_VERB_GET);
+        return $this->execute($url, self::HTTP_VERB_GET, $query);
     }
 
-    public function post($url, $data)
+    public function post($url, array $query = null, array $rawdata = null)
     {
-        return $this->execute($url, self::HTTP_VERB_POST, $data);
+        return $this->execute($url, self::HTTP_VERB_POST, $query, $rawdata);
     }
 
-    public function put($url, $data)
+    public function put($url, array $query = null, array $rawdata = null)
     {
-        return $this->execute($url, self::HTTP_VERB_PUT, $data);
+        return $this->execute($url, self::HTTP_VERB_PUT, $query, $rawdata);
     }
 
-    public function patch($url, $data)
+    public function patch($url, array $query = null, array $rawdata = null)
     {
-        return $this->execute($url, self::HTTP_VERB_PATCH, $data);
+        return $this->execute($url, self::HTTP_VERB_PATCH, $query, $rawdata);
     }
 
-    public function delete($url)
+    public function delete($url, array $query = null)
     {
-        return $this->execute($url, self::HTTP_VERB_DELETE);
+        return $this->execute($url, self::HTTP_VERB_DELETE, $query);
     }
 
-    public function options($url)
+    public function options($url, array $query = null)
     {
-        return $this->execute($url, self::HTTP_VERB_OPTIONS);
+        return $this->execute($url, self::HTTP_VERB_OPTIONS, $query);
     }
 
-    public function head($url)
+    public function head($url, array $query = null)
     {
-        return $this->execute($url, self::HTTP_VERB_HEAD);
+        return $this->execute($url, self::HTTP_VERB_HEAD, $query);
     }
 
     /**
      * 
      * @param string $url
      * @param string $method
-     * @param array $data
+     * @param array $query
      * @return object | array
      */
-    protected function execute($url, $method, array $data = array(), \Zend\Http\Headers $headers = null)
+    protected function execute($url, $method, array $query = null, array $rawdata = null, \Zend\Http\Headers $headers = null)
     {
         $request = new Request();
         $request->getHeaders()->addHeaders(array(
             'Content-Type' => $this->getContentType()
         ));
-        $request->setUri($url);
-        $request->setMethod($method);
+        $request->setUri($url)
+                ->setMethod($method);
+        if ($query) {
+            $request->setQuery(new Parameters($query));
+        }
         if ($headers) {
             $request->setHeaders($headers);
         }
-        
+
         switch ($method) {
             case self::HTTP_VERB_POST:
             case self::HTTP_VERB_PUT:
             case self::HTTP_VERB_PATCH:
-                if ($data) {
-                    $request->setPost(new Parameters($data));
+                if ($rawdata) {
+                    $request->setPost(new Parameters($rawdata));
                 }
                 break;
 

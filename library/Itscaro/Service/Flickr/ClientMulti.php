@@ -2,8 +2,8 @@
 
 namespace Itscaro\Service\Flickr;
 
-use ZendOAuth;
 use Itscaro\Rest;
+use ZendOAuth;
 
 class ClientMulti extends ClientAbstract {
 
@@ -79,7 +79,7 @@ class ClientMulti extends ClientAbstract {
     /**
      * 
      * @param ZendOAuth\Token\Access $accessToken
-     * @return \Itscaro\Service\Flickr\Client
+     * @return ClientMulti
      */
     public function setAccessToken(ZendOAuth\Token\Access $accessToken)
     {
@@ -116,67 +116,33 @@ class ClientMulti extends ClientAbstract {
      * @return object | array
      * @throws Exception
      */
-    protected function dispatch($httpMethod, $method, array $params = array())
+    public function prepareMulti($httpMethod, $method, array $params = null)
     {
         $defaultParams = array(
             'nojsoncallback' => 1,
             'format' => 'json',
+            'method' => $method,
         );
-        $params = array_merge($defaultParams, $params);
+        $finalParams = array_merge($defaultParams, $this->generateOAuthParams(), $params);
 
         switch (strtoupper($httpMethod)) {
             case "GET":
-                $result = $this->get($method, $params);
+                $result = $this->getRestClient()->get($this->getEndpoint(), $finalParams);
                 break;
+
             case "POST":
-                $result = $this->post($method, $params);
+                $result = $this->getRestClient()->post($this->getEndpoint(), null, $finalParams);
                 break;
-        }
-
-        if (isset($result['stat']) && $result['stat'] != 'ok') {
-            $e = new Exception($result['message'], $result['code']);
-            $e->setStat($result['stat']);
-
-            throw $e;
         }
 
         return $result;
     }
 
-    /**
-     * Call using HTTP GET
-     * @param string $method
-     * @param array $params
-     * @return int Key in batch
-     */
-    public function get($method, array $params = array())
-    {
-        $params['method'] = $method;
-
-        $finalParams = array_merge($params, $this->generateOAuthParams());
-        $url = $this->getEndpoint() . '/?' . http_build_query($finalParams);
-
-        return $this->getRestClient()->get($url);
-    }
-
-    /**
-     * Call using HTTP POST
-     * @param string $method
-     * @param array $params
-     * @return int Key in batch
-     */
-    public function post($method, array $params = array())
-    {
-        $params['method'] = $method;
-
-        $finalParams = array_merge($params, $this->generateOAuthParams());
-
-        return $this->getRestClient()->post($this->getEndpoint(), $finalParams);
-    }
-
     public function dispatchMulti()
     {
-        $this->getRestClient()->dispatch();
+        $results = $this->getRestClient()->dispatch();
+
+        return $results;
     }
 
 }
