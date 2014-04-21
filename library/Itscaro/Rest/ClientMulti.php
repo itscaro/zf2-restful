@@ -129,7 +129,7 @@ class ClientMulti extends RestClient {
         }
 
         $this->_handlers[] = $ch;
-        
+
         end($this->_handlers);
         return key($this->_handlers);
     }
@@ -157,20 +157,22 @@ class ClientMulti extends RestClient {
                 } while ($mrc == CURLM_CALL_MULTI_PERFORM);
             }
         }
-        var_dump("INFO", curl_multi_info_read($mh));
 
         //close the handles
         foreach ($this->_handlers as $key => $ch) {
-            $this->_reponses[$key] = curl_multi_getcontent($ch);
+            if (curl_errno($ch)) {
+                $this->_responses[$key] = curl_error($ch);
+            } else {
+                $this->_responses[$key] = curl_multi_getcontent($ch);
+            }
             curl_multi_remove_handle($mh, $ch);
             curl_close($ch);
         }
         curl_multi_close($mh);
 
         $this->_handlers = null;
-        var_dump("RESPONSE", $this->_responses);
 
-        return $this->_reponses;
+        return $this->_responses;
     }
 
 }

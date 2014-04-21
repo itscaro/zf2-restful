@@ -51,7 +51,7 @@ class PhotoCollection extends ModelAbstract {
     public function addItems(array $items)
     {
         foreach ($items as $_item) {
-            $this->photo[] = new Photo($_item);
+            $this->photo[$_item['id']] = new Photo($_item);
         }
     }
 

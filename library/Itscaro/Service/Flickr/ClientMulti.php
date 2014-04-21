@@ -109,14 +109,14 @@ class ClientMulti extends ClientAbstract {
     }
 
     /**
-     * 
+     * Add to queue
      * @param string $httpMethod
      * @param string $method
      * @param array $params
-     * @return object | array
+     * @return int Key of the request
      * @throws Exception
      */
-    public function prepareMulti($httpMethod, $method, array $params = null)
+    public function addToQueue($httpMethod, $method, array $params = null)
     {
         $defaultParams = array(
             'nojsoncallback' => 1,
@@ -138,11 +138,31 @@ class ClientMulti extends ClientAbstract {
         return $result;
     }
 
+    /**
+     * Execute all prepared calls
+     * Use self::addToQueue before calling this method
+     * @return object | array
+     */
     public function dispatchMulti()
     {
         $results = $this->getRestClient()->dispatch();
 
         return $results;
+    }
+
+    /**
+     * Execute unique call
+     * @param string $httpMethod
+     * @param string $method
+     * @param array $params
+     * @return object | arrays
+     */
+    public function dispatch($httpMethod, $method, array $params = null)
+    {
+        $id = $this->addToQueue($httpMethod, $method, $params);
+        $result = $this->dispatchMulti();
+
+        return $result[$id];
     }
 
 }
