@@ -92,31 +92,9 @@ class ClientMulti extends ClientAbstract {
      * 
      * @return array
      */
-    protected function generateOAuthParams(array $params = array())
+    protected function assembleParams(array $params = array())
     {
         $params = $this->_httpUtility->assembleParams($this->getEndpoint(), $this->_oauthConfig, $params);
-        return $params;
-        
-        $params = array(
-            'oauth_consumer_key' => $this->_oauthConfig->getConsumerKey(),
-            'oauth_nonce' => $this->_httpUtility->generateNonce(),
-            'oauth_timestamp' => $this->_httpUtility->generateTimestamp(),
-            'oauth_signature_method' => $this->_oauthConfig->getSignatureMethod(),
-            'oauth_version' => $this->_oauthConfig->getVersion(),
-        );
-        $params['oauth_signature'] = $this->_httpUtility->sign(
-            $params,
-            $this->_oauthConfig->getSignatureMethod(),
-            $this->_oauthConfig->getConsumerSecret(),
-            $this->_consumer->getLastRequestToken()->getTokenSecret(),
-            $this->_preferredRequestMethod,
-            $this->_oauthConfig->getAccessTokenUrl()
-        );
-
-        if ($this->_accessToken instanceof ZendOAuth\Token\Access) {
-            $params['oauth_token'] = $this->_accessToken->getParam('oauth_token');
-        }
-
         return $params;
     }
 
@@ -138,8 +116,8 @@ class ClientMulti extends ClientAbstract {
         );
         $finalParams = array_merge($defaultParams, $params);
 
-        $finalParams = $this->generateOAuthParams($finalParams);
-        //var_dump($this->getEndpoint(), $finalParams);exit;
+        $finalParams = $this->assembleParams($finalParams);
+
         switch (strtoupper($httpMethod)) {
             case "GET":
                 $result = $this->getRestClient()->get($this->getEndpoint(), $finalParams);
