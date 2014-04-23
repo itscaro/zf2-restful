@@ -128,7 +128,7 @@ class ClientMulti extends RestClient {
                 break;
         }
 
-        $this->_handlers[] = $ch;
+        $this->_handlers[uniqid()] = $ch;
 
         end($this->_handlers);
         return key($this->_handlers);

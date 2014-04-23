@@ -134,7 +134,7 @@ class ClientMulti extends ClientAbstract {
     /**
      * Execute all prepared calls
      * Use self::addToQueue before calling this method
-     * @return object | array
+     * @return object|array
      */
     public function dispatchMulti()
     {
@@ -148,7 +148,7 @@ class ClientMulti extends ClientAbstract {
      * @param string $httpMethod
      * @param string $method
      * @param array $params
-     * @return object | arrays
+     * @return object|array
      */
     public function dispatch($httpMethod, $method, array $params = null)
     {
