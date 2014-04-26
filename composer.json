@@ -10,10 +10,8 @@
     "homepage": "http://lib.itscaro.me",
     "require": {
         "php": ">=5.3.3",
-        "zendframework/zendframework": "2.3.*",
+        "zendframework/zend-http": "2.3.*",
         "zendframework/zendoauth": "dev-master"
-    },
-    "require-dev": {
     },
     "autoload": {
         "psr-0": {

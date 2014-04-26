@@ -15,13 +15,141 @@ class ClientMulti extends RestClient {
 
     protected $_handlers = array();
     protected $_responses = array();
+    protected $_infos = array();
     protected $_httpClientOptions = array();
+
+    /**
+     *
+     * @var \Closure
+     */
+    protected $_callbackWriteFunction;
+
+    /**
+     *
+     * @var \Closure 
+     */
+    protected $_callbackHeaderFunction;
 
     public function __construct(array $httpClientOptions = array())
     {
         $this->_httpClientOptions = $httpClientOptions;
     }
 
+    /**
+     * 
+     * @return resource[]
+     * @throws Exception
+     */
+    public function getHandlers()
+    {
+        return $this->_handlers;
+    }
+
+    /**
+     * 
+     * @param string $id
+     * @return resource curl resource
+     * @throws Exception
+     */
+    public function getHandler($id)
+    {
+        if (isset($this->_handlers[$id])) {
+            return $this->_handlers[$id];
+        } else {
+            throw new Exception("There is no handler with the id '{$id}'");
+        }
+    }
+
+    /**
+     * 
+     * @return array
+     */
+    public function getResponses()
+    {
+        return $this->_responses;
+    }
+
+    /**
+     * 
+     * @param string $id
+     * @return mixed
+     * @throws Exception
+     */
+    public function getResponse($id)
+    {
+        if (isset($this->_responses[$id])) {
+            return $this->_responses[$id];
+        } else {
+            throw new Exception("There is no response with the id '{$id}'");
+        }
+    }
+    
+    /**
+     * 
+     * @return array
+     */
+    public function getInfos()
+    {
+        return $this->_infos;
+    }
+
+    /**
+     * 
+     * @param string $id
+     * @return array
+     * @throws Exception
+     */
+    public function getInfo($id)
+    {
+        if (isset($this->_infos[$id])) {
+            return $this->_infos[$id];
+        } else {
+            throw new Exception("There is no infos with the id '{$id}'");
+        }
+    }
+
+    public function getCallbackWriteFunction()
+    {
+        return $this->_callbackWriteFunction;
+    }
+
+    public function setCallbackWriteFunction(\Closure $callbackWriteFunction)
+    {
+        $this->_callbackWriteFunction = $callbackWriteFunction;
+        return $this;
+    }
+
+    public function removeCallbackWriteFunction()
+    {
+        $this->_callbackWriteFunction = null;
+        return $this;
+    }
+
+    public function getCallbackHeaderFunction()
+    {
+        return $this->_callbackHeaderFunction;
+    }
+
+    public function setCallbackHeaderFunction(\Closure $callbackHeaderFunction)
+    {
+        $this->_callbackHeaderFunction = $callbackHeaderFunction;
+        return $this;
+    }
+
+    public function removeCallbackHeaderFunction()
+    {
+        $this->_callbackHeaderFunction = null;
+        return $this;
+    }
+
+    public function reset() {
+        $this->_callbackHeaderFunction = null;
+        $this->_callbackWriteFunction = null;
+        $this->_handlers = array();
+        $this->_responses = array();
+        $this->_infos = array();
+    }
+    
     protected function execute($url, $method, array $query = null, array $rawdata = null, Headers $headers = null)
     {
         $request = new Request();
@@ -92,11 +220,21 @@ class ClientMulti extends RestClient {
         curl_setopt($ch, CURL_HTTP_VERSION_1_1, true);
         curl_setopt($ch, $curlMethod, $curlValue);
 
+        // ensure actual response is returned
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        // set callback function
+        if ($this->getCallbackWriteFunction() instanceof \Closure) {
+            curl_setopt($ch, CURLOPT_WRITEFUNCTION, $this->getCallbackWriteFunction());
+        }
+
         // ensure headers are also returned
         curl_setopt($ch, CURLOPT_HEADER, false);
 
-        // ensure actual response is returned
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        // set callback function
+        if ($this->getCallbackHeaderFunction() instanceof \Closure) {
+            curl_setopt($ch, CURLOPT_HEADERFUNCTION, $this->getCallbackHeaderFunction());
+        }
 
         // Treating basic auth headers in a special way
         if ($request->getHeaders() instanceof Headers) {
@@ -136,10 +274,12 @@ class ClientMulti extends RestClient {
 
     public function dispatch()
     {
-        // Reset response before a new dispatch
+        // Reset response and infos before a new dispatch
         unset($this->_responses);
         $this->_responses = array();
-        
+        unset($this->_infos);
+        $this->_infos = array();
+
         //create the multiple cURL handle
         $mh = curl_multi_init();
 
@@ -164,6 +304,7 @@ class ClientMulti extends RestClient {
 
         //close the handles
         foreach ($this->_handlers as $key => $ch) {
+            $this->_infos[$key] = curl_getinfo($ch);
             if (curl_errno($ch)) {
                 $this->_responses[$key] = curl_error($ch);
             } else {
@@ -180,5 +321,5 @@ class ClientMulti extends RestClient {
 
         return $this->_responses;
     }
-
+    
 }

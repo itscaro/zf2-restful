@@ -33,7 +33,7 @@ class Flickr {
     {
         $this->_client = new ClientMulti($this->_endpoint, $options, $httpClientOptions);
     }
-    
+
     /**
      * 
      * @return ZendOAuth\Token\Access
@@ -60,8 +60,11 @@ class Flickr {
     public function dispatch()
     {
         $responses = $this->_client->dispatchMulti();
+        $this->_client->getRestClient()->reset();
 
         foreach ($responses as $_requestId => &$_result) {
+            $_result = json_decode($_result, true);
+
             switch ($this->_queue[$_requestId]) {
                 case 'flickr.photosets.getList':
                     foreach ($_result['photosets']['photoset'] as $_set) {
@@ -78,12 +81,10 @@ class Flickr {
                 default:
                     break;
             }
-            
-            $_result = json_decode($_result, true);
         }
-        
+
         $this->_queue = array();
-        
+
         return $responses;
     }
 
@@ -299,7 +300,7 @@ class Flickr {
                 'user_id' => $userId
             );
         }
-        
+
         $requestId = $this->_client->addToQueue('GET', $method, $params);
 
         $this->_queue[$requestId] = $method;
