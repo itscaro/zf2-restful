@@ -136,6 +136,10 @@ class ClientMulti extends RestClient {
 
     public function dispatch()
     {
+        // Reset response before a new dispatch
+        unset($this->_responses);
+        $this->_responses = array();
+        
         //create the multiple cURL handle
         $mh = curl_multi_init();
 
@@ -170,7 +174,9 @@ class ClientMulti extends RestClient {
         }
         curl_multi_close($mh);
 
-        $this->_handlers = null;
+        // Reset handlers after dispatching
+        unset($this->_handlers);
+        $this->_handlers = array();
 
         return $this->_responses;
     }
