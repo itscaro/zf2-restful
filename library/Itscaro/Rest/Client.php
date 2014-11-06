@@ -7,7 +7,8 @@ use Zend\Http\Request;
 use Zend\Http\Response;
 use Zend\Stdlib\Parameters;
 
-class Client {
+class Client
+{
 
     const HTTP_VERB_GET = 'GET';
     const HTTP_VERB_POST = 'POST';
@@ -17,47 +18,49 @@ class Client {
     const HTTP_VERB_OPTIONS = 'OPTIONS';
     const HTTP_VERB_HEAD = 'HEAD';
 
-    public function __construct()
+    protected $_httpClientOptions = array();
+
+    public function __construct(array $httpClientOptions = array())
     {
-        
+        $this->_httpClientOptions = $httpClientOptions;
     }
 
     /**
      *
      * @var HttpClient
      */
-    protected static $_httpClient;
+    protected $_httpClient;
 
     /**
      *
-     * @var string 
+     * @var string
      */
     protected $_contentType = "application/json";
 
     /**
-     * 
+     *
      * @return HttpClient
      */
-    public static function getHttpClient()
+    public function getHttpClient()
     {
-        if (static::$_httpClient == null) {
-            $httpClient = new HttpClient();
-            static::setHttpClient($httpClient);
+        if ($this->_httpClient == null) {
+            $httpClient = new HttpClient('', $this->_httpClientOptions);
+            $this->setHttpClient($httpClient);
         }
-        return static::$_httpClient;
+        return $this->_httpClient;
     }
 
     /**
-     * 
+     *
      * @param HttpClient $httpClient
      */
-    public static function setHttpClient(HttpClient $httpClient)
+    public function setHttpClient(HttpClient $httpClient)
     {
-        static::$_httpClient = $httpClient;
+        $this->_httpClient = $httpClient;
     }
 
     /**
-     * 
+     *
      * @return string
      */
     public function getContentType()
@@ -66,7 +69,7 @@ class Client {
     }
 
     /**
-     * 
+     *
      * @param string $contentType
      * @return \Itscaro\Rest\Client
      */
@@ -112,7 +115,7 @@ class Client {
     }
 
     /**
-     * 
+     *
      * @param string $url
      * @param string $method
      * @param array $query
@@ -125,7 +128,7 @@ class Client {
             'Content-Type' => $this->getContentType()
         ));
         $request->setUri($url)
-                ->setMethod($method);
+            ->setMethod($method);
         if ($query) {
             $request->setQuery(new Parameters($query));
         }
@@ -154,16 +157,16 @@ class Client {
     }
 
     /**
-     * 
+     *
      * @param Response $response
      */
     protected function _processStatus(Response $response)
     {
-        
+
     }
 
     /**
-     * 
+     *
      * @param Response $response
      * @return object | array
      */

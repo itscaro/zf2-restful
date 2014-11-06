@@ -5,49 +5,39 @@ namespace Itscaro\Service\Flickr;
 use ZendOAuth;
 use Itscaro\Rest;
 
-class Client extends ClientAbstract {
-
+class Client extends ClientAbstract
+{
     /**
      *
-     * @var ZendOAuth\Http\Utility
-     */
-    protected $_httpUtility;
-
-    /**
-     *
-     * @var ZendOAuth\Config\ConfigInterface
-     */
-    protected $_oauthConfig;
-
-    /**
-     *
-     * @var ZendOAuth\Token\Access 
+     * @var ZendOAuth\Token\Access
      */
     protected $_accessToken;
 
     /**
      *
-     * @var Rest\Client 
+     * @var Rest\Client
      */
     protected $_restClient;
+    protected $_httpClientOptions;
 
-    public function __construct($endpoint, array $options)
+    public function __construct($endpoint, array $options, array $httpClientOptions)
     {
         parent::__construct($endpoint);
         $this->_httpUtility = new ZendOAuth\Http\Utility();
         $this->_oauthConfig = new ZendOAuth\Config\StandardConfig($options);
+        $this->_httpClientOptions = $httpClientOptions;
 
         $this->getRestClient()->setContentType("text/plain");
     }
 
     /**
-     * 
+     *
      * @return Rest\Client
      */
     public function getRestClient()
     {
         if ($this->_restClient == null) {
-            $restClient = new Rest\Client();
+            $restClient = new Rest\Client($this->_httpClientOptions);
             $this->setRestClient($restClient);
         }
 
@@ -55,7 +45,7 @@ class Client extends ClientAbstract {
     }
 
     /**
-     * 
+     *
      * @param Rest\Client $restClient
      * @return Client
      */
@@ -66,7 +56,7 @@ class Client extends ClientAbstract {
     }
 
     /**
-     * 
+     *
      * @return \Zend\Http\Client
      */
     public function getHttpClient()
@@ -75,7 +65,7 @@ class Client extends ClientAbstract {
     }
 
     /**
-     * 
+     *
      * @param \Zend\Http\Client $httpClient
      * @return Flickr\Client
      */
@@ -87,7 +77,7 @@ class Client extends ClientAbstract {
     }
 
     /**
-     * 
+     *
      * @return ZendOAuth\Token\Access
      */
     public function getAccessToken()
@@ -96,39 +86,19 @@ class Client extends ClientAbstract {
     }
 
     /**
-     * 
+     *
      * @param ZendOAuth\Token\Access $accessToken
      * @return \Itscaro\Service\Flickr\Client
      */
     public function setAccessToken(ZendOAuth\Token\Access $accessToken)
     {
         $this->_accessToken = $accessToken;
+        $this->_oauthConfig->setToken($accessToken);
         return $this;
     }
 
     /**
-     * 
-     * @return array
-     */
-    protected function generateOAuthParams()
-    {
-        $params = array(
-            'oauth_consumer_key' => $this->_oauthConfig->getConsumerKey(),
-            'oauth_nonce' => $this->_httpUtility->generateNonce(),
-            'oauth_timestamp' => $this->_httpUtility->generateTimestamp(),
-            'oauth_signature_method' => $this->_oauthConfig->getSignatureMethod(),
-            'oauth_version' => $this->_oauthConfig->getVersion(),
-        );
-
-        if ($this->_accessToken instanceof ZendOAuth\Token\Access) {
-            $params['oauth_token'] = $this->_accessToken->getParam('oauth_token');
-        }
-
-        return $params;
-    }
-
-    /**
-     * 
+     *
      * @param string $httpMethod
      * @param string $method
      * @param array $params
@@ -137,12 +107,6 @@ class Client extends ClientAbstract {
      */
     protected function dispatch($httpMethod, $method, array $params = array())
     {
-        $defaultParams = array(
-            'nojsoncallback' => 1,
-            'format' => 'json',
-        );
-        $params = array_merge($defaultParams, $params);
-
         switch (strtoupper($httpMethod)) {
             case "GET":
                 $result = $this->get($method, $params);
@@ -170,9 +134,13 @@ class Client extends ClientAbstract {
      */
     public function get($method, array $params = array())
     {
-        $params['method'] = $method;
+        $defaultParams = array(
+            'nojsoncallback' => 1,
+            'format' => 'json',
+            'method' => $method,
+        );
+        $finalParams = $this->assembleParams(array_merge($defaultParams, $params));
 
-        $finalParams = array_merge($params, $this->generateOAuthParams());
         $url = $this->getEndpoint() . '/?' . http_build_query($finalParams);
 
         return json_decode($this->getRestClient()->get($url), true);
@@ -186,9 +154,13 @@ class Client extends ClientAbstract {
      */
     public function post($method, array $params = array())
     {
-        $params['method'] = $method;
+        $defaultParams = array(
+            'nojsoncallback' => 1,
+            'format' => 'json',
+            'method' => $method,
+        );
 
-        $finalParams = array_merge($params, $this->generateOAuthParams());
+        $finalParams = $this->assembleParams(array_merge($defaultParams, $params));
 
         return json_decode($this->getRestClient()->post($this->getEndpoint(), $finalParams), true);
     }

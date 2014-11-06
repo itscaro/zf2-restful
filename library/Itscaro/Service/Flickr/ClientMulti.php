@@ -21,7 +21,7 @@ class ClientMulti extends ClientAbstract {
 
     /**
      *
-     * @var ZendOAuth\Token\Access 
+     * @var ZendOAuth\Token\Access
      */
     protected $_accessToken;
 
@@ -43,7 +43,7 @@ class ClientMulti extends ClientAbstract {
     }
 
     /**
-     * 
+     *
      * @return Rest\ClientMulti
      */
     public function getRestClient()
@@ -57,7 +57,7 @@ class ClientMulti extends ClientAbstract {
     }
 
     /**
-     * 
+     *
      * @param Rest\ClientMulti $restClient
      * @return ClientMulti
      */
@@ -68,7 +68,7 @@ class ClientMulti extends ClientAbstract {
     }
 
     /**
-     * 
+     *
      * @return ZendOAuth\Token\Access
      */
     public function getAccessToken()
@@ -77,7 +77,7 @@ class ClientMulti extends ClientAbstract {
     }
 
     /**
-     * 
+     *
      * @param ZendOAuth\Token\Access $accessToken
      * @return ClientMulti
      */
@@ -89,16 +89,6 @@ class ClientMulti extends ClientAbstract {
     }
 
     /**
-     * 
-     * @return array
-     */
-    protected function assembleParams(array $params = array())
-    {
-        $params = $this->_httpUtility->assembleParams($this->getEndpoint(), $this->_oauthConfig, $params);
-        return $params;
-    }
-
-    /**
      * Add to queue
      * @param string $httpMethod
      * @param string $method
@@ -106,7 +96,7 @@ class ClientMulti extends ClientAbstract {
      * @return int Key of the request
      * @throws Exception
      */
-    public function addToQueue($httpMethod, $method, array $params = null)
+    public function addToQueue($httpMethod, $method, array $params = array())
     {
         $defaultParams = array(
             //'api_key' => $this->_oauthConfig->getConsumerKey(),

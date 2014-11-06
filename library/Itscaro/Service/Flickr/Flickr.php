@@ -35,7 +35,7 @@ class Flickr {
     }
 
     /**
-     * 
+     *
      * @return ZendOAuth\Token\Access
      */
     public function getAccessToken()
@@ -44,7 +44,7 @@ class Flickr {
     }
 
     /**
-     * 
+     *
      * @param ZendOAuth\Token\Access $accessToken
      * @return Flickr
      */
@@ -55,7 +55,7 @@ class Flickr {
     }
 
     /**
-     * 
+     *
      */
     public function dispatch()
     {
@@ -273,6 +273,7 @@ class Flickr {
     {
         $method = 'flickr.photosets.getList';
 
+        $params = array();
         if ($userId !== null) {
             $params = array(
                 'user_id' => $userId
@@ -295,6 +296,7 @@ class Flickr {
     {
         $method = 'flickr.tags.getListUser';
 
+        $params = array();
         if ($userId !== null) {
             $params = array(
                 'user_id' => $userId
