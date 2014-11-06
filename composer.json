@@ -11,7 +11,7 @@
     "require": {
         "php": ">=5.3.3",
         "zendframework/zend-http": "2.3.*",
-        "zendframework/zendoauth": "dev-master"
+        "zendframework/zendoauth": "2.*@dev"
     },
     "autoload": {
         "psr-0": {
