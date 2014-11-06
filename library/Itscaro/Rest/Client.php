@@ -124,6 +124,7 @@ class Client
     protected function execute($url, $method, array $query = null, array $rawdata = null, \Zend\Http\Headers $headers = null)
     {
         $request = new Request();
+        $this->getHttpClient()->setRequest($request);
         $request->getHeaders()->addHeaders(array(
             'Content-Type' => $this->getContentType()
         ));
