@@ -187,12 +187,12 @@ class Photo
 
         if ($decodedResponse['stat'] == 'ok') {
             if ($async) {
-                return (string) $decodedResponse->ticketid;
+                return $decodedResponse->ticketid;
             } else {
-                return (int) $decodedResponse->photoid;
+                return $decodedResponse->photoid;
             }
         } else {
-            throw new \Exception((string) $decodedResponse->err['msg'], (int) $decodedResponse->err['code']);
+            throw new \Exception($decodedResponse->err['msg'], (int) $decodedResponse->err['code']);
         }
     }
 
