@@ -26,7 +26,7 @@ class ClientMulti extends RestClient {
 
     /**
      *
-     * @var \Closure 
+     * @var \Closure
      */
     protected $_callbackHeaderFunction;
 
@@ -36,7 +36,7 @@ class ClientMulti extends RestClient {
     }
 
     /**
-     * 
+     *
      * @return resource[]
      * @throws Exception
      */
@@ -46,7 +46,7 @@ class ClientMulti extends RestClient {
     }
 
     /**
-     * 
+     *
      * @param string $id
      * @return resource curl resource
      * @throws Exception
@@ -61,7 +61,7 @@ class ClientMulti extends RestClient {
     }
 
     /**
-     * 
+     *
      * @return array
      */
     public function getResponses()
@@ -70,7 +70,7 @@ class ClientMulti extends RestClient {
     }
 
     /**
-     * 
+     *
      * @param string $id
      * @return mixed
      * @throws Exception
@@ -83,9 +83,9 @@ class ClientMulti extends RestClient {
             throw new Exception("There is no response with the id '{$id}'");
         }
     }
-    
+
     /**
-     * 
+     *
      * @return array
      */
     public function getInfos()
@@ -94,7 +94,7 @@ class ClientMulti extends RestClient {
     }
 
     /**
-     * 
+     *
      * @param string $id
      * @return array
      * @throws Exception
@@ -149,7 +149,7 @@ class ClientMulti extends RestClient {
         $this->_responses = array();
         $this->_infos = array();
     }
-    
+
     protected function execute($url, $method, array $query = null, array $rawdata = null, Headers $headers = null)
     {
         $request = new Request();
@@ -321,5 +321,5 @@ class ClientMulti extends RestClient {
 
         return $this->_responses;
     }
-    
+
 }

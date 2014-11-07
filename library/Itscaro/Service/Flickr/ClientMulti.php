@@ -9,18 +9,6 @@ class ClientMulti extends ClientAbstract {
 
     /**
      *
-     * @var ZendOAuth\Http\Utility
-     */
-    protected $_httpUtility;
-
-    /**
-     *
-     * @var ZendOAuth\Config\ConfigInterface
-     */
-    protected $_oauthConfig;
-
-    /**
-     *
      * @var ZendOAuth\Token\Access
      */
     protected $_accessToken;
@@ -30,17 +18,6 @@ class ClientMulti extends ClientAbstract {
      * @var Rest\ClientMulti
      */
     protected $_restClient;
-    protected $_httpClientOptions;
-
-    public function __construct($endpoint, array $options, array $httpClientOptions)
-    {
-        parent::__construct($endpoint);
-        $this->_httpUtility = new ZendOAuth\Http\Utility();
-        $this->_oauthConfig = new ZendOAuth\Config\StandardConfig($options);
-        $this->_httpClientOptions = $httpClientOptions;
-
-        $this->getRestClient()->setContentType("text/plain");
-    }
 
     /**
      *
@@ -49,7 +26,7 @@ class ClientMulti extends ClientAbstract {
     public function getRestClient()
     {
         if ($this->_restClient == null) {
-            $restClient = new Rest\ClientMulti($this->_httpClientOptions);
+            $restClient = new Rest\ClientMulti($this->_optionsHttpClient);
             $this->setRestClient($restClient);
         }
 
@@ -84,7 +61,7 @@ class ClientMulti extends ClientAbstract {
     public function setAccessToken(ZendOAuth\Token\Access $accessToken)
     {
         $this->_accessToken = $accessToken;
-        $this->_oauthConfig->setToken($accessToken);
+        $this->_optionsOAuth->setToken($accessToken);
         return $this;
     }
 
@@ -104,9 +81,7 @@ class ClientMulti extends ClientAbstract {
             'format' => 'json',
             'method' => $method,
         );
-        $finalParams = array_merge($defaultParams, $params);
-
-        $finalParams = $this->assembleParams($finalParams);
+        $finalParams = $this->assembleParams(array_merge($defaultParams, $params));
 
         switch (strtoupper($httpMethod)) {
             case "GET":

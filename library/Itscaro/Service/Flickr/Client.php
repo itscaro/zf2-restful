@@ -18,17 +18,6 @@ class Client extends ClientAbstract
      * @var Rest\Client
      */
     protected $_restClient;
-    protected $_httpClientOptions;
-
-    public function __construct($endpoint, array $options, array $httpClientOptions)
-    {
-        parent::__construct($endpoint);
-        $this->_httpUtility = new ZendOAuth\Http\Utility();
-        $this->_oauthConfig = new ZendOAuth\Config\StandardConfig($options);
-        $this->_httpClientOptions = $httpClientOptions;
-
-        $this->getRestClient()->setContentType("text/plain");
-    }
 
     /**
      *
@@ -37,7 +26,7 @@ class Client extends ClientAbstract
     public function getRestClient()
     {
         if ($this->_restClient == null) {
-            $restClient = new Rest\Client($this->_httpClientOptions);
+            $restClient = new Rest\Client($this->_optionsHttpClient);
             $this->setRestClient($restClient);
         }
 
@@ -93,7 +82,7 @@ class Client extends ClientAbstract
     public function setAccessToken(ZendOAuth\Token\Access $accessToken)
     {
         $this->_accessToken = $accessToken;
-        $this->_oauthConfig->setToken($accessToken);
+        $this->_optionsOAuth->setToken($accessToken);
         return $this;
     }
 

@@ -3,6 +3,7 @@
 namespace Itscaro\Service\Flickr;
 
 use Itscaro\Rest;
+use ZendOAuth;
 
 abstract class ClientAbstract
 {
@@ -17,7 +18,13 @@ abstract class ClientAbstract
      *
      * @var ZendOAuth\Config\ConfigInterface
      */
-    protected $_oauthConfig;
+    protected $_optionsOAuth;
+
+    /**
+     *
+     * @var array
+     */
+    protected $_optionsHttpClient;
 
     /**
      *
@@ -25,9 +32,14 @@ abstract class ClientAbstract
      */
     protected $_endpoint;
 
-    function __construct($endpoint)
+    public function __construct($endpoint, array $optionsOAuth, array $optionsHttpClient)
     {
         $this->setEndpoint($endpoint);
+        $this->_httpUtility = new ZendOAuth\Http\Utility();
+        $this->_optionsOAuth = new ZendOAuth\Config\StandardConfig($optionsOAuth);
+        $this->_optionsHttpClient = $optionsHttpClient;
+
+        $this->getRestClient()->setContentType("application/json");
     }
 
     /**
@@ -57,7 +69,7 @@ abstract class ClientAbstract
      */
     public function setAccessToken(ZendOAuth\Token\Access $accessToken)
     {
-        $this->_oauthConfig->setToken($accessToken);
+        $this->_optionsOAuth->setToken($accessToken);
         return $this;
     }
 
@@ -67,7 +79,7 @@ abstract class ClientAbstract
      */
     protected function assembleParams(array $params = array())
     {
-        $params = $this->_httpUtility->assembleParams($this->getEndpoint(), $this->_oauthConfig, $params);
+        $params = $this->_httpUtility->assembleParams($this->getEndpoint(), $this->_optionsOAuth, $params);
         return $params;
     }
 
