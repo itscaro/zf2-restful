@@ -155,12 +155,12 @@ class Photo
 
         if ($decodedResponse['stat'] == 'ok') {
             if ($async) {
-                return $decodedResponse->ticketid;
+                return (string) $decodedResponse->ticketid;
             } else {
-                return $decodedResponse->photoid;
+                return (string) $decodedResponse->photoid;
             }
         } else {
-            throw new \Exception($decodedResponse->err['msg'], (int) $decodedResponse->err['code']);
+            throw new \Exception((string) $decodedResponse->err['msg'], (int) $decodedResponse->err['code']);
         }
     }
 
@@ -187,12 +187,12 @@ class Photo
 
         if ($decodedResponse['stat'] == 'ok') {
             if ($async) {
-                return $decodedResponse->ticketid;
+                return (string) $decodedResponse->ticketid;
             } else {
-                return $decodedResponse->photoid;
+                return (string) $decodedResponse->photoid;
             }
         } else {
-            throw new \Exception($decodedResponse->err['msg'], (int) $decodedResponse->err['code']);
+            throw new \Exception((string) $decodedResponse->err['msg'], (int) $decodedResponse->err['code']);
         }
     }
 
