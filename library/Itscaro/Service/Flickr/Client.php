@@ -132,7 +132,7 @@ class Client extends ClientAbstract
 
         $url = $this->getEndpoint() . '/?' . http_build_query($finalParams);
 
-        return json_decode($this->getRestClient()->get($url), true);
+        return $this->getRestClient()->get($url);
     }
 
     /**
@@ -151,7 +151,7 @@ class Client extends ClientAbstract
 
         $finalParams = $this->assembleParams(array_merge($defaultParams, $params));
 
-        return json_decode($this->getRestClient()->post($this->getEndpoint(), $finalParams), true);
+        return $this->getRestClient()->post($this->getEndpoint(), $finalParams);
     }
 
     /**
