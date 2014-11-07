@@ -84,19 +84,19 @@ class Client
         return $this->execute($url, self::HTTP_VERB_GET, $query);
     }
 
-    public function post($url, array $query = null, array $rawdata = null)
+    public function post($url, array $query = null, array $postdata = null, array $rawdata = null)
     {
-        return $this->execute($url, self::HTTP_VERB_POST, $query, $rawdata);
+        return $this->execute($url, self::HTTP_VERB_POST, $query, $postdata, $rawdata);
     }
 
-    public function put($url, array $query = null, array $rawdata = null)
+    public function put($url, array $query = null, array $postdata = null, array $rawdata = null)
     {
-        return $this->execute($url, self::HTTP_VERB_PUT, $query, $rawdata);
+        return $this->execute($url, self::HTTP_VERB_PUT, $query, $postdata, $rawdata);
     }
 
-    public function patch($url, array $query = null, array $rawdata = null)
+    public function patch($url, array $query = null, array $postdata = null, array $rawdata = null)
     {
-        return $this->execute($url, self::HTTP_VERB_PATCH, $query, $rawdata);
+        return $this->execute($url, self::HTTP_VERB_PATCH, $query, $postdata, $rawdata);
     }
 
     public function delete($url, array $query = null)
@@ -121,10 +121,11 @@ class Client
      * @param array $query
      * @return object | array
      */
-    protected function execute($url, $method, array $query = null, array $rawdata = null, \Zend\Http\Headers $headers = null)
+    protected function execute($url, $method, array $query = null, array $postdata = null, array $rawdata = null, \Zend\Http\Headers $headers = null)
     {
         $request = new Request();
         $this->getHttpClient()->setRequest($request);
+        
         $request->getHeaders()->addHeaders(array(
             'Content-Type' => $this->getContentType()
         ));
@@ -134,15 +135,15 @@ class Client
             $request->setQuery(new Parameters($query));
         }
         if ($headers) {
-            $request->setHeaders($headers);
+            $request->getHeaders()->addHeaders($headers);
         }
 
         switch ($method) {
             case self::HTTP_VERB_POST:
             case self::HTTP_VERB_PUT:
             case self::HTTP_VERB_PATCH:
-                if ($rawdata) {
-                    $request->setPost(new Parameters($rawdata));
+                if ($postdata) {
+                    $request->setPost(new Parameters($postdata));
                 }
                 break;
 
