@@ -10,9 +10,10 @@ use Zend\Stdlib\Parameters;
  *
  * @author Minh-Quan
  */
-class Photo
-{
+class Photo {
 
+    const ERR_RESPONSE_NOT_XML = 10000;
+    
     /**
      *
      * @var \Zend\Http\Client
@@ -141,8 +142,8 @@ class Photo
 
         $request = new \Zend\Http\Request();
         $request->setUri($this->_endpointUpload)
-            ->setMethod('POST')
-            ->setPost(new Parameters($finalParams));
+                ->setMethod('POST')
+                ->setPost(new Parameters($finalParams));
 
         $this->_httpClient->reset();
         $this->_httpClient->setRequest($request);
@@ -151,16 +152,20 @@ class Photo
 
         $response = $this->_httpClient->dispatch($request);
 
-        $decodedResponse = simplexml_load_string($response->getBody());
+        $decodedResponse = @simplexml_load_string($response->getBody());
 
-        if ($decodedResponse['stat'] == 'ok') {
-            if ($async) {
-                return (string) $decodedResponse->ticketid;
-            } else {
-                return (string) $decodedResponse->photoid;
-            }
+        if (!$decodedResponse instanceof SimpleXMLElement) {
+            throw new \Exception('Could not decode response: ' . $response->getBody(), self::ERR_RESPONSE_NOT_XML);
         } else {
-            throw new \Exception((string) $decodedResponse->err['msg'], (int) $decodedResponse->err['code']);
+            if ($decodedResponse['stat'] == 'ok') {
+                if ($async) {
+                    return (string) $decodedResponse->ticketid;
+                } else {
+                    return (string) $decodedResponse->photoid;
+                }
+            } else {
+                throw new \Exception((string) $decodedResponse->err['msg'], (int) $decodedResponse->err['code']);
+            }
         }
     }
 
@@ -173,8 +178,8 @@ class Photo
 
         $request = new \Zend\Http\Request();
         $request->setUri($this->_endpointReplace)
-            ->setMethod('POST')
-            ->setPost(new Parameters($finalParams));
+                ->setMethod('POST')
+                ->setPost(new Parameters($finalParams));
 
         $this->_httpClient->reset();
         $this->_httpClient->setRequest($request);
@@ -185,14 +190,18 @@ class Photo
 
         $decodedResponse = simplexml_load_string($response->getBody());
 
-        if ($decodedResponse['stat'] == 'ok') {
-            if ($async) {
-                return (string) $decodedResponse->ticketid;
-            } else {
-                return (string) $decodedResponse->photoid;
-            }
+        if (!$decodedResponse instanceof SimpleXMLElement) {
+            throw new \Exception('Could not decode response: ' . $response->getBody(), self::ERR_RESPONSE_NOT_XML);
         } else {
-            throw new \Exception((string) $decodedResponse->err['msg'], (int) $decodedResponse->err['code']);
+            if ($decodedResponse['stat'] == 'ok') {
+                if ($async) {
+                    return (string) $decodedResponse->ticketid;
+                } else {
+                    return (string) $decodedResponse->photoid;
+                }
+            } else {
+                throw new \Exception((string) $decodedResponse->err['msg'], (int) $decodedResponse->err['code']);
+            }
         }
     }
 
@@ -207,7 +216,16 @@ class Photo
      */
     public function uploadSync($filePath, $title = null, $description = null, $tags = null, $contentType = 1)
     {
-        return $this->_upload($filePath, $title, $description, $tags, $contentType, 0);
+        try {
+            return $this->_upload($filePath, $title, $description, $tags, $contentType, 0);
+        } catch (\Exception $e) {
+            if ($e->getCode() == self::ERR_RESPONSE_NOT_XML) {
+                // Retry
+                return $this->_upload($filePath, $title, $description, $tags, $contentType, 0);
+            } else {
+                throw $e;
+            }
+        }
     }
 
     /**
@@ -221,7 +239,16 @@ class Photo
      */
     public function uploadAsync($filePath, $title = null, $description = null, $tags = null, $contentType = 1)
     {
-        return $this->_upload($filePath, $title, $description, $tags, $contentType, 1);
+        try {
+            return $this->_upload($filePath, $title, $description, $tags, $contentType, 1);
+        } catch (\Exception $e) {
+            if ($e->getCode() == self::ERR_RESPONSE_NOT_XML) {
+                // Retry
+                return $this->_upload($filePath, $title, $description, $tags, $contentType, 1);
+            } else {
+                throw $e;
+            }
+        }
     }
 
     /**
@@ -232,7 +259,16 @@ class Photo
      */
     public function replaceSync($filePath, $photoId)
     {
-        return $this->_replace($filePath, $photoId, 0);
+        try {
+            return $this->_replace($filePath, $photoId, 0);
+        } catch (\Exception $e) {
+            if ($e->getCode() == self::ERR_RESPONSE_NOT_XML) {
+                // Retry
+                return $this->_replace($filePath, $photoId, 0);
+            } else {
+                throw $e;
+            }
+        }
     }
 
     /**
@@ -243,7 +279,16 @@ class Photo
      */
     public function replaceAsync($filePath, $photoId)
     {
-        return $this->_replace($filePath, $photoId, 1);
+        try {
+            return $this->_replace($filePath, $photoId, 1);
+        } catch (\Exception $e) {
+            if ($e->getCode() == self::ERR_RESPONSE_NOT_XML) {
+                // Retry
+                return $this->_replace($filePath, $photoId, 1);
+            } else {
+                throw $e;
+            }
+        }
     }
 
 }
