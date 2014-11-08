@@ -154,7 +154,7 @@ class Photo {
 
         $decodedResponse = @simplexml_load_string($response->getBody());
 
-        if (!$decodedResponse instanceof SimpleXMLElement) {
+        if (!$decodedResponse instanceof \SimpleXMLElement) {
             throw new \Exception('Could not decode response: ' . $response->getBody(), self::ERR_RESPONSE_NOT_XML);
         } else {
             if ($decodedResponse['stat'] == 'ok') {
@@ -190,7 +190,7 @@ class Photo {
 
         $decodedResponse = simplexml_load_string($response->getBody());
 
-        if (!$decodedResponse instanceof SimpleXMLElement) {
+        if (!$decodedResponse instanceof \SimpleXMLElement) {
             throw new \Exception('Could not decode response: ' . $response->getBody(), self::ERR_RESPONSE_NOT_XML);
         } else {
             if ($decodedResponse['stat'] == 'ok') {
