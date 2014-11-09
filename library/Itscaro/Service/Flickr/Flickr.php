@@ -13,7 +13,7 @@ class Flickr {
 
     /**
      *
-     * @var ClientMulti
+     * @var Client
      */
     protected $_client;
 
@@ -23,15 +23,10 @@ class Flickr {
      */
     protected $_endpoint = 'https://api.flickr.com/services/rest/';
 
-    /**
-     *
-     * @var array
-     */
-    protected $_queue = array();
-
-    public function __construct(array $options = array(), array $httpClientOptions = array())
+    public function __construct(ZendOAuth\Token\Access $accessToken, array $optionsOAuth = array(), array $optionsHttpClient = array())
     {
-        $this->_client = new ClientMulti($this->_endpoint, $options, $httpClientOptions);
+        $this->_client = new Client($this->_endpoint, $optionsOAuth, $optionsHttpClient);
+        $this->_client->setAccessToken($accessToken);
     }
 
     /**
@@ -44,48 +39,12 @@ class Flickr {
     }
 
     /**
-     *
-     * @param ZendOAuth\Token\Access $accessToken
-     * @return Flickr
+     * 
+     * @return Client
      */
-    public function setAccessToken(ZendOAuth\Token\Access $accessToken)
+    public function getClient()
     {
-        $this->_client->setAccessToken($accessToken);
-        return $this;
-    }
-
-    /**
-     *
-     */
-    public function dispatch()
-    {
-        $responses = $this->_client->dispatchMulti();
-        $this->_client->getRestClient()->reset();
-
-        foreach ($responses as $_requestId => &$_result) {
-            $_result = json_decode($_result, true);
-
-            switch ($this->_queue[$_requestId]) {
-                case 'flickr.photosets.getList':
-                    foreach ($_result['photosets']['photoset'] as $_set) {
-                        $sets[$_set['id']] = $_set['title']['_content'];
-                    }
-                    break;
-
-                case 'flickr.tags.getListUser':
-                    foreach ($_result['who']['tags']['tag'] as $_tag) {
-                        $tags[$_tag['_content']] = $_tag['_content'];
-                    }
-                    break;
-
-                default:
-                    break;
-            }
-        }
-
-        $this->_queue = array();
-
-        return $responses;
+        return $this->_client;
     }
 
     /**
@@ -93,23 +52,24 @@ class Flickr {
      * The calling user must have permission to view the photo.
      * @param string $photoId Photo Id
      * @param string $secret Secret of the photo
-     * @param array $params
-     * @return Flickr
+     * @param array $extraParams
+     * @return object | array
      */
-    public function photoGetExif($photoId, $secret = null, array $params = array())
+    public function photoGetExif($photoId, $secret = null, array $extraParams = array())
     {
-        $method = 'flickr.photos.getExif';
-
-        $params['photo_id'] = $photoId;
+        $extraParams['photo_id'] = $photoId;
         if ($secret !== null) {
-            $params['secret'] = $secret;
+            $extraParams['secret'] = $secret;
         }
 
-        $requestId = $this->_client->addToQueue('GET', $method, $params);
+        $result = $this->getClient()->get('flickr.photos.getExif', $extraParams);
 
-        $this->_queue[$requestId] = $method;
+        $exifs = new Model\Photo\ExifCollection($result['photo']);
+        if (isset($result['photo']['exif']) && is_array($result['photo']['exif'])) {
+            $exifs->addItems($result['photo']['exif']);
+        }
 
-        return $this;
+        return $exifs;
     }
 
     /**
@@ -117,43 +77,40 @@ class Flickr {
      * The calling user must have permission to view the photo.
      * @param string $photoId Photo Id
      * @param string $secret Secret of the photo
-     * @param array $params
-     * @return Flickr
+     * @param array $extraParams
+     * @return object | array
      */
-    public function photoGetInfo($photoId, $secret = null, array $params = array())
+    public function photoGetInfo($photoId, $secret = null, array $extraParams = array())
     {
-        $method = 'flickr.photos.getInfo';
-
-        $params['photo_id'] = $photoId;
+        $extraParams['photo_id'] = $photoId;
         if ($secret !== null) {
-            $params['secret'] = $secret;
+            $extraParams['secret'] = $secret;
         }
 
-        $requestId = $this->_client->addToQueue('GET', $method, $params);
+        $result = $this->getClient()->get('flickr.photos.getInfo', $extraParams);
 
-        $this->_queue[$requestId] = $method;
-
-        return $this;
+        return new Model\Photo\PhotoInfo($result['photo']);
     }
 
     /**
      * Returns the available sizes for a photo.
      * The calling user must have permission to view the photo.
      * @param string $photoId Photo Id
-     * @param array $params
-     * @return Flickr
+     * @param array $extraParams
+     * @return object | array
      */
-    public function photoGetSizes($photoId, array $params = array())
+    public function photoGetSizes($photoId, array $extraParams = array())
     {
-        $method = 'flickr.photos.getSizes';
+        $extraParams['photo_id'] = $photoId;
 
-        $params['photo_id'] = $photoId;
+        $result = $this->getClient()->get('flickr.photos.getSizes', $extraParams);
 
-        $requestId = $this->_client->addToQueue('GET', $method, $params);
+        $sizes = new Model\Photo\SizeCollection($result['sizes']);
+        if (isset($result['sizes']['size']) && is_array($result['sizes']['size'])) {
+            $sizes->addItems($result['sizes']['size']);
+        }
 
-        $this->_queue[$requestId] = $method;
-
-        return $this;
+        return $sizes;
     }
 
     /**
@@ -161,21 +118,15 @@ class Flickr {
      * This method used HTTP POST
      * @param string $photoId Photo Id
      * @param array $tags Tags
-     * @param array $params
-     * @return Flickr
+     * @param array $extraParams
+     * @return object | array
      */
-    public function photoAddTags($photoId, array $tags, array $params = array())
+    public function photoAddTags($photoId, array $tags, array $extraParams = array())
     {
-        $method = 'flickr.photos.addTags';
+        $extraParams['photo_id'] = $photoId;
+        $extraParams['tags'] = $this->_tagsArrayToString($tags);
 
-        $params['photo_id'] = $photoId;
-        $params['tags'] = $this->_tagsArrayToString($tags);
-
-        $requestId = $this->_client->addToQueue('POST', $method, $params);
-
-        $this->_queue[$requestId] = $method;
-
-        return $this;
+        return $this->getClient()->post('flickr.photos.addTags', $extraParams);
     }
 
     /**
@@ -183,41 +134,29 @@ class Flickr {
      * This method used HTTP POST
      * @param string $photoId Photo Id
      * @param array $tags Tags
-     * @param array $params
-     * @return Flickr
+     * @param array $extraParams
+     * @return object | array
      */
-    public function photoSetTags($photoId, array $tags, array $params = array())
+    public function photoSetTags($photoId, array $tags, array $extraParams = array())
     {
-        $method = 'flickr.photos.setTags';
+        $extraParams['photo_id'] = $photoId;
+        $extraParams['tags'] = $this->_tagsArrayToString($tags);
 
-        $params['photo_id'] = $photoId;
-        $params['tags'] = $this->_tagsArrayToString($tags);
-
-        $requestId = $this->_client->addToQueue('POST', $method, $params);
-
-        $this->_queue[$requestId] = $method;
-
-        return $this;
+        return $this->getClient()->post('flickr.photos.setTags', $extraParams);
     }
 
     /**
      * Remove a tag from a photo.
      * This method used HTTP POST
      * @param string $tagId Tag Id
-     * @param array $params
-     * @return Flickr
+     * @param array $extraParams
+     * @return object | array
      */
-    public function photoRemoveTag($tagId, array $params = array())
+    public function photoRemoveTag($tagId, array $extraParams = array())
     {
-        $method = 'flickr.photos.removeTag';
+        $extraParams['tag_id'] = $tagId;
 
-        $params['tag_id'] = $tagId;
-
-        $requestId = $this->_client->addToQueue('POST', $method, $params);
-
-        $this->_queue[$requestId] = $method;
-
-        return $this;
+        return $this->getClient()->post('flickr.photos.removeTag', $extraParams);
     }
 
     /**
@@ -226,22 +165,16 @@ class Flickr {
      * @param string $photoId Photo Id
      * @param string $title Photo title
      * @param string $description Photo description
-     * @param array $params
-     * @return Flickr
+     * @param array $extraParams
+     * @return object | array
      */
-    public function photoSetMeta($photoId, $title, $description, array $params = array())
+    public function photoSetMeta($photoId, $title, $description, array $extraParams = array())
     {
-        $method = 'flickr.photos.setMeta';
+        $extraParams['photo_id'] = $photoId;
+        $extraParams['title'] = $title;
+        $extraParams['description'] = $description;
 
-        $params['photo_id'] = $photoId;
-        $params['title'] = $title;
-        $params['description'] = $description;
-
-        $requestId = $this->_client->addToQueue('POST', $method, $params);
-
-        $this->_queue[$requestId] = $method;
-
-        return $this;
+        return $this->getClient()->post('flickr.photos.setMeta', $extraParams);
     }
 
     /**
@@ -250,64 +183,45 @@ class Flickr {
      * To return private or semi-private photos, the caller must be authenticated with 'read' permissions, and have permission to view the photos.
      * Unauthenticated calls will only return public photos.
      * @see https://www.flickr.com/services/api/flickr.photos.search.html
-     * @param array $params
-     * @return Flickr
+     * @param array $extraParams
+     * @return object | array
      */
-    public function photoSearch(array $params = array())
+    public function photoSearch(array $extraParams = array(), Model\Photo\PhotoCollection $photos = null)
     {
-        $method = 'flickr.photos.search';
+        $result = $this->getClient()->get('flickr.photos.search', $extraParams);
 
-        $requestId = $this->_client->addToQueue('GET', $method, $params);
-
-        $this->_queue[$requestId] = $method;
-
-        return $this;
-    }
-
-    /**
-     * Returns the photosets belonging to the specified user
-     * @param string $userId
-     * @return Flickr
-     */
-    public function photosetGetList($userId = null)
-    {
-        $method = 'flickr.photosets.getList';
-
-        $params = array();
-        if ($userId !== null) {
-            $params = array(
-                'user_id' => $userId
-            );
+        if ($photos === null) {
+            $photos = new Model\Photo\PhotoCollection($result['photos']);
+        } else {
+            $photos->page = $result['photos']['page'];
+            $photos->pages = $result['photos']['pages'];
+            $photos->perpage = $result['photos']['perpage'];
+            $photos->total = $result['photos']['total'];
         }
 
-        $requestId = $this->_client->addToQueue('GET', $method, $params);
-
-        $this->_queue[$requestId] = $method;
-
-        return $this;
-    }
-
-    /**
-     * Get the tag list for a given user (or the currently logged in user)
-     * @param string $userId
-     * @return Flickr
-     */
-    public function tagGetListUser($userId = null)
-    {
-        $method = 'flickr.tags.getListUser';
-
-        $params = array();
-        if ($userId !== null) {
-            $params = array(
-                'user_id' => $userId
-            );
+        if (isset($result['photos']['photo']) && is_array($result['photos']['photo'])) {
+            $photos->addItems($result['photos']['photo']);
         }
 
-        $requestId = $this->_client->addToQueue('GET', $method, $params);
+        return $photos;
+    }
 
-        $this->_queue[$requestId] = $method;
+    public function photoSearchAll(array $extraParams = array(), Model\Photo\PhotoCollection $photos = null)
+    {
+        if ($photos === null) {
+            $photos = new Model\Photo\PhotoCollection();
+        }
 
-        return $this;
+        if (isset($extraParams['page'])) {
+            $photos->page = $extraParams['page'];            
+        }
+        
+        while ($photos->page == 0 || $photos->page < $photos->pages) {
+            $extraParams['page'] = $photos->page + 1;
+            $this->photoSearch($extraParams, $photos);
+        }
+
+        return $photos;
     }
 
     /**
@@ -325,4 +239,8 @@ class Flickr {
         return implode(' ', $tags);
     }
 
+    protected function _sanitizeTag($string)
+    {
+        return preg_replace('/[^a-z0-9-_]/i', '_', $string);
+    }
 }

@@ -11,9 +11,11 @@ abstract class ModelAbstract {
 
     public function __construct(array $rawData = array())
     {
-        foreach ($rawData as $_key => $_data) {
-            $this->{$_key} = $_data;
-        }
+//        foreach ($rawData as $_key => $_data) {
+//            $this->{$_key} = $_data;
+//        }
+        $mapper = new \JsonMapper();
+        $mapper->map($rawData, $this);
     }
 
 }
