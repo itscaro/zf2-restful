@@ -2,6 +2,7 @@
 
 namespace Itscaro\Service\Flickr\Model\Photo;
 
+use Itscaro\Service\Flickr;
 use Itscaro\Service\Flickr\Model\ModelAbstract;
 
 /**
@@ -41,18 +42,10 @@ class PhotoCollection extends ModelAbstract {
      */
     public $photo = array();
 
-    public function __construct(array $rawData = array())
-    {
-        parent::__construct($rawData);
-
-        $this->photo = null;
-    }
-
     public function addItems(array $items)
     {
-        foreach ($items as $_item) {
-            $this->photo[$_item['id']] = new Photo($_item);
-        }
+        $mapper = new \JsonMapper();
+        $this->photo = $mapper->mapArray($items, $this->photo, new Photo());
     }
 
 }

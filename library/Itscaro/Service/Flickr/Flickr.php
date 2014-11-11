@@ -9,23 +9,18 @@ use ZendOAuth;
  *
  * @author Minh-Quan
  */
-class Flickr {
+class Flickr extends FlickrAbstract {
 
     /**
      *
      * @var Client
      */
     protected $_client;
-
-    /**
-     *
-     * @var string
-     */
-    protected $_endpoint = 'https://api.flickr.com/services/rest/';
+    protected static $_instance;
 
     public function __construct(ZendOAuth\Token\Access $accessToken, array $optionsOAuth = array(), array $optionsHttpClient = array())
     {
-        $this->_client = new Client($this->_endpoint, $optionsOAuth, $optionsHttpClient);
+        $this->_client = new Client(static::FLICKR_API, $optionsOAuth, $optionsHttpClient);
         $this->_client->setAccessToken($accessToken);
     }
 
@@ -184,7 +179,8 @@ class Flickr {
      * Unauthenticated calls will only return public photos.
      * @see https://www.flickr.com/services/api/flickr.photos.search.html
      * @param array $extraParams
-     * @return object | array
+     * @param \Itscaro\Service\Flickr\Model\Photo\PhotoCollection $photos
+     * @return Model\Photo\PhotoCollection
      */
     public function photoSearch(array $extraParams = array(), Model\Photo\PhotoCollection $photos = null)
     {
@@ -197,15 +193,20 @@ class Flickr {
             $photos->pages = $result['photos']['pages'];
             $photos->perpage = $result['photos']['perpage'];
             $photos->total = $result['photos']['total'];
-        }
-
-        if (isset($result['photos']['photo']) && is_array($result['photos']['photo'])) {
-            $photos->addItems($result['photos']['photo']);
+            if (isset($result['photos']['photo']) && is_array($result['photos']['photo'])) {
+                $photos->addItems($result['photos']['photo']);
+            }
         }
 
         return $photos;
     }
 
+    /**
+     * 
+     * @param array $extraParams
+     * @param \Itscaro\Service\Flickr\Model\Photo\PhotoCollection $photos
+     * @return \Itscaro\Service\Flickr\Model\Photo\PhotoCollection
+     */
     public function photoSearchAll(array $extraParams = array(), Model\Photo\PhotoCollection $photos = null)
     {
         if ($photos === null) {
@@ -213,15 +214,46 @@ class Flickr {
         }
 
         if (isset($extraParams['page'])) {
-            $photos->page = $extraParams['page'];            
+            $photos->page = $extraParams['page'];
         }
-        
+
         while ($photos->page == 0 || $photos->page < $photos->pages) {
             $extraParams['page'] = $photos->page + 1;
             $this->photoSearch($extraParams, $photos);
         }
 
         return $photos;
+    }
+
+    /**
+     * Get the tag list for a given user (or the currently logged in user).
+     * @param string $user_nsid
+     * @param string $searchRegEx Pattern to search (using with preg_match())
+     * @return array
+     */
+    public function tagsGetListUser($user_nsid = null, $searchRegEx = null)
+    {
+        $params = array();
+
+        if ($user_nsid != null) {
+            $params = array(
+                'user_id' => $user_nsid
+            );
+        }
+        $return = $this->getClient()->get('flickr.tags.getListUser', $params);
+
+        $tags = array();
+        foreach ($return['who']['tags']['tag'] as $tag) {
+            if ($searchRegEx != null) {
+                if (preg_match($searchRegEx, $tag['_content']) == 1) {
+                    $tags[] = $tag['_content'];
+                }
+            } else {
+                $tags[] = $tag['_content'];
+            }
+        }
+
+        return $tags;
     }
 
     /**
@@ -243,4 +275,5 @@ class Flickr {
     {
         return preg_replace('/[^a-z0-9-_]/i', '_', $string);
     }
+
 }

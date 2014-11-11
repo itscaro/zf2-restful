@@ -9,19 +9,14 @@ use ZendOAuth;
  *
  * @author Minh-Quan
  */
-class FlickrMulti {
+class FlickrMulti extends FlickrAbstract {
 
     /**
      *
      * @var ClientMulti
      */
     protected $_client;
-
-    /**
-     *
-     * @var string
-     */
-    protected $_endpoint = 'https://api.flickr.com/services/rest/';
+    protected static $_instance;
 
     /**
      *
@@ -31,7 +26,7 @@ class FlickrMulti {
 
     public function __construct(ZendOAuth\Token\Access $accessToken, array $optionsOAuth = array(), array $optionsHttpClient = array())
     {
-        $this->_client = new ClientMulti($this->_endpoint, $optionsOAuth, $optionsHttpClient);
+        $this->_client = new ClientMulti(static::FLICKR_API, $optionsOAuth, $optionsHttpClient);
         $this->_client->setAccessToken($accessToken);
     }
 
@@ -52,7 +47,7 @@ class FlickrMulti {
     {
         return $this->_client;
     }
-    
+
     /**
      *
      */

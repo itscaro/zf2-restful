@@ -2,6 +2,8 @@
 
 namespace Itscaro\Service\Flickr\Model;
 
+use Itscaro\Service\Flickr;
+
 /**
  * Description of Photo
  *
